@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEVENT: Interaktive Strategie-Anwendung</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sevent-green: #7ED321;
+            --sevent-dark-gray: #1a1a1a;
+            --sevent-medium-gray: #2d2d2d;
+            --sevent-light-gray: #cccccc;
+            --sevent-white: #ffffff;
+            --sevent-black: #000000;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--sevent-black);
+            color: var(--sevent-light-gray);
+            scroll-behavior: smooth;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        @media (min-width: 1024px) { .chart-container { height: 400px; } }
+
+        .nav-link {
+            padding: 0.75rem 1.25rem; 
+            border-radius: 0.375rem;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--sevent-light-gray);
+            display: inline-block; 
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--sevent-green);
+            color: var(--sevent-black);
+            box-shadow: 0 0 15px var(--sevent-green);
+        }
+        .nav-link-sub {
+             padding: 0.5rem 1rem;
+             margin-left: 0; 
+             border-radius: 0.275rem; 
+             font-size: 0.875rem;
+             color: var(--sevent-light-gray);
+             text-transform: none; 
+             transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+        }
+        .nav-link-sub:hover, .nav-link-sub.active {
+            background-color: var(--sevent-green);
+            color: var(--sevent-black) !important; 
+        }
+        .dropdown-menu {
+            background-color: var(--sevent-medium-gray);
+            border: 1px solid var(--sevent-green);
+            box-shadow: 0 5px 15px rgba(126, 211, 33, 0.3);
+        }
+
+        .card {
+            background-color: var(--sevent-dark-gray);
+            border-radius: 0.75rem;
+            border: 1px solid var(--sevent-green);
+            box-shadow: 0 0 10px rgba(126, 211, 33, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(126, 211, 33, 0.5);
+        }
+
+        .accordion-button.expanded .arrow {
+            transform: rotate(180deg);
+        }
+        .sticky-nav {
+            position: -webkit-sticky; 
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: var(--sevent-black);
+            box-shadow: 0 2px 10px rgba(126, 211, 33, 0.3); 
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .chartjs-tooltip {
+            opacity: 0;
+            position: absolute;
+            background: rgba(45, 45, 45, 0.9); 
+            color: var(--sevent-white);
+            border-radius: 3px;
+            border: 1px solid var(--sevent-green);
+            transition: all .1s ease;
+            pointer-events: none;
+            transform: translate(-50%, 0);
+            padding: 8px;
+        }
+        .chartjs-tooltip-key {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 5px;
+            border-radius: 2px;
+        }
+        h1, h2, h3, h4 {
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        h1.main-title { 
+            font-size: 3rem; 
+            font-weight: 900; 
+            color: var(--sevent-green);
+            text-shadow: 0 0 10px var(--sevent-green), 0 0 20px var(--sevent-green);
+        }
+        h2 {
+            font-size: 2.25rem; 
+            color: var(--sevent-white);
+            margin-bottom: 1.5rem; 
+            border-bottom: 2px solid var(--sevent-green);
+            padding-bottom: 0.75rem;
+        }
+        h3 {
+            font-size: 1.5rem; 
+            color: var(--sevent-green);
+            margin-top: 2rem; 
+            margin-bottom: 1rem;
+        }
+         h4 {
+            font-size: 1.25rem; 
+            color: var(--sevent-white);
+            margin-top: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .tagline {
+            color: var(--sevent-green);
+            text-transform: uppercase;
+            font-weight: 600;
+            font-size: 1.25rem; 
+            letter-spacing: 0.1em; 
+        }
+        .priority-border {
+            border: 2px solid var(--sevent-green) !important; 
+            box-shadow: 0 0 15px var(--sevent-green);
+        }
+        .glow-effect {
+            transition: box-shadow 0.3s ease;
+        }
+        .glow-effect:hover {
+            box-shadow: 0 0 20px var(--sevent-green);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--sevent-dark-gray);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--sevent-green);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5cb800; 
+        }
+        .arrow-down {
+            display: inline-block;
+            margin-left: 0.25rem;
+            transition: transform 0.2s ease-in-out;
+        }
+        .group:hover .arrow-down {
+            transform: rotate(180deg);
+        }
+        .section-intro {
+            color: var(--sevent-light-gray);
+            font-size: 1.125rem; 
+            margin-bottom: 1.5rem;
+        }
+        
+        table {
+            color: var(--sevent-light-gray);
+        }
+        th {
+            background-color: var(--sevent-medium-gray) !important;
+            color: var(--sevent-green) !important;
+            text-transform: uppercase;
+        }
+        tbody tr {
+            background-color: var(--sevent-dark-gray);
+            border-bottom: 1px solid var(--sevent-medium-gray);
+        }
+        tbody tr:hover {
+            background-color: var(--sevent-medium-gray);
+        }
+        td {
+             padding: 0.75rem 1rem !important; 
+        }
+        .alert-box {
+            background-color: #370000; 
+            border-left: 4px solid #ff3333; 
+            color: var(--sevent-white);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 0 10px rgba(255,51,51, 0.3);
+        }
+        .alert-box p strong {
+            color: #ff8080; 
+        }
+
+        #languageToggle {
+            background-color: var(--sevent-medium-gray);
+            color: var(--sevent-green);
+            border: 1px solid var(--sevent-green);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            margin-left: 1rem; 
+        }
+        #languageToggle:hover {
+            background-color: var(--sevent-green);
+            color: var(--sevent-black);
+            box-shadow: 0 0 10px var(--sevent-green);
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="py-8 bg-sevent-black text-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="main-title">SEVENT®</h1>
+            <p class="tagline mt-2">THE FUTURE OF DRIVING</p>
+            <p class="text-xl text-sevent-light-gray mt-4" data-lang-de="Interaktiver Strategiebericht" data-lang-en="Interactive Strategy Report">Interaktiver Strategiebericht</p>
+        </div>
+    </header>
+
+    <nav id="mainNav" class="sticky-nav py-2">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap justify-center items-center gap-x-2 gap-y-2">
+                <a href="#executive-summary" class="nav-link" data-lang-de="Executive Summary" data-lang-en="Executive Summary">Executive Summary</a>
+                <div class="relative group">
+                    <a href="#markt" class="nav-link" data-lang-de="Marktanalyse" data-lang-en="Market Analysis">Marktanalyse <span class="arrow-down">▾</span></a>
+                    <div class="dropdown-menu absolute left-0 mt-2 w-56 rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+                        <a href="#markt-trendbeschreibung" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Trendbeschreibung" data-lang-en="Trend Description">Trendbeschreibung</a>
+                        <a href="#markt-aktuelle-daten" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Aktuelle Marktdaten" data-lang-en="Current Market Data">Aktuelle Marktdaten</a>
+                        <a href="#markt-auswirkungen" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Auswirkungen" data-lang-en="Impacts">Auswirkungen</a>
+                        <a href="#markt-prognosen" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Prognosen & Empfehlungen" data-lang-en="Forecasts & Recommendations">Prognosen & Empfehlungen</a>
+                    </div>
+                </div>
+                 <div class="relative group">
+                    <a href="#wettbewerb" class="nav-link" data-lang-de="Wettbewerbsanalyse" data-lang-en="Competitor Analysis">Wettbewerbsanalyse <span class="arrow-down">▾</span></a>
+                    <div class="dropdown-menu absolute left-0 mt-2 w-56 rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+                        <a href="#wettbewerb-sixt" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Sixt" data-lang-en="Sixt">Sixt</a>
+                        <a href="#wettbewerb-weitere" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Weitere Wettbewerber" data-lang-en="Other Competitors">Weitere Wettbewerber</a>
+                        <a href="#wettbewerb-benchmarking" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Benchmarking SEVENT" data-lang-en="Benchmarking SEVENT">Benchmarking SEVENT</a>
+                    </div>
+                </div>
+                <a href="#cross-industry-innovation" class="nav-link" data-lang-de="Cross-Industry Innovation" data-lang-en="Cross-Industry Innovation">Cross-Industry Innovation</a>
+                <div class="relative group">
+                     <a href="#strategische-hebel" class="nav-link" data-lang-de="Strategische Hebel" data-lang-en="Strategic Levers">Strategische Hebel <span class="arrow-down">▾</span></a>
+                     <div class="dropdown-menu absolute left-0 mt-2 w-56 rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+                        <a href="#hebel-identifikation" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Identifikation" data-lang-en="Identification">Identifikation</a>
+                        <a href="#hebel-priorisierung" class="block px-4 py-2 text-sm nav-link-sub" data-lang-de="Priorisierung (Top 3)" data-lang-en="Prioritization (Top 3)">Priorisierung (Top 3)</a>
+                    </div>
+                </div>
+                <a href="#nachhaltigkeit" class="nav-link" data-lang-de="Nachhaltigkeits-Blueprint" data-lang-en="Sustainability Blueprint">Nachhaltigkeits-Blueprint</a>
+                <a href="#roadmap" class="nav-link" data-lang-de="Roadmap & Imperative" data-lang-en="Roadmap & Imperatives">Roadmap & Imperative</a>
+                <button id="languageToggle">EN</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <section id="executive-summary" class="mb-16 scroll-mt-24">
+            <h2 data-lang-de="Executive Summary" data-lang-en="Executive Summary">Executive Summary</h2>
+            <p class="section-intro" data-lang-de="Dieser interaktive Bericht fasst die strategische Analyse für SEVENT – The Future of Driving – zusammen. Er beleuchtet den deutschen Carsharing-Markt, den Wettbewerb und identifiziert Schlüsselstrategien für SEVENTs Ziel, mit 200.000 Elektrofahrzeugen 100% CO2-Neutralität zu erreichen und sich als Marktführer zu etablieren." data-lang-en="This interactive report summarizes the strategic analysis for SEVENT – The Future of Driving. It highlights the German carsharing market, the competition, and identifies key strategies for SEVENT's goal of achieving 100% CO2 neutrality with 200,000 electric vehicles and establishing itself as a market leader.">Dieser interaktive Bericht fasst die strategische Analyse für SEVENT – The Future of Driving – zusammen. Er beleuchtet den deutschen Carsharing-Markt, den Wettbewerb und identifiziert Schlüsselstrategien für SEVENTs Ziel, mit 200.000 Elektrofahrzeugen 100% CO2-Neutralität zu erreichen und sich als Marktführer zu etablieren.</p>
+            
+            <div class="alert-box" role="alert">
+                <p class="font-bold text-lg" data-lang-de="🚨 KRITISCHER ALERT: TASKFORCE AUF TONGA" data-lang-en="🚨 CRITICAL ALERT: TASKFORCE IN TONGA">🚨 KRITISCHER ALERT: TASKFORCE AUF TONGA</p>
+                <p data-lang-de="Die für den Abschluss des 200.000 EV-Deals zuständige Taskforce ist derzeit aufgrund eines Vulkanausbruchs auf Tonga von der Außenwelt abgeschnitten. Dies unterstreicht die Dringlichkeit, die hier präsentierten strategischen Analysen und Empfehlungen umzusetzen und alternative Handlungspläne zu entwickeln." data-lang-en="The task force responsible for finalizing the 200,000 EV deal is currently cut off from the outside world due to a volcanic eruption in Tonga. This underscores the urgency of implementing the strategic analyses and recommendations presented here and developing alternative action plans.">Die für den Abschluss des 200.000 EV-Deals zuständige Taskforce ist derzeit aufgrund eines Vulkanausbruchs auf Tonga von der Außenwelt abgeschnitten. Dies unterstreicht die Dringlichkeit, die hier präsentierten strategischen Analysen und Empfehlungen umzusetzen und alternative Handlungspläne zu entwickeln.</p>
+            </div>
+
+            <h3 class="text-sevent-green" data-lang-de="TOP 3 STRATEGISCHE EMPFEHLUNGEN:" data-lang-en="TOP 3 STRATEGIC RECOMMENDATIONS:">TOP 3 STRATEGISCHE EMPFEHLUNGEN:</h3>
+            <div class="grid md:grid-cols-3 gap-8 mt-6">
+                <div class="card p-6 priority-border">
+                    <h4 class="text-sevent-green" data-lang-de="1. PROPRIETÄRES EV-LADENETZ" data-lang-en="1. PROPRIETARY EV CHARGING NETWORK">1. PROPRIETÄRES EV-LADENETZ</h4>
+                    <p data-lang-de="Entwicklung eines eigenen oder präferenziellen Ladenetzes zur Sicherung der Flottenverfügbarkeit und Kostenoptimierung." data-lang-en="Development of a proprietary or preferential charging network to ensure fleet availability and cost optimization.">Entwicklung eines eigenen oder präferenziellen Ladenetzes zur Sicherung der Flottenverfügbarkeit und Kostenoptimierung.</p>
+                </div>
+                <div class="card p-6 priority-border">
+                    <h4 class="text-sevent-green" data-lang-de="2. FORTSCHRITTLICHE DATENANALYSE" data-lang-en="2. ADVANCED DATA ANALYSIS">2. FORTSCHRITTLICHE DATENANALYSE</h4>
+                    <p data-lang-de="Implementierung von KI/ML für Flottenoptimierung, dynamische Preisgestaltung und Maximierung der Auslastung." data-lang-en="Implementation of AI/ML for fleet optimization, dynamic pricing, and maximization of utilization.">Implementierung von KI/ML für Flottenoptimierung, dynamische Preisgestaltung und Maximierung der Auslastung.</p>
+                </div>
+                <div class="card p-6 priority-border">
+                    <h4 class="text-sevent-green" data-lang-de="3. &quot;TOTAL ZERO&quot; NACHHALTIGKEITSMARKE" data-lang-en="3. &quot;TOTAL ZERO&quot; SUSTAINABILITY BRAND">3. "TOTAL ZERO" NACHHALTIGKEITSMARKE</h4>
+                    <p data-lang-de="Authentischer Aufbau einer Marke, die für 100% CO2-Neutralität über den gesamten Lebenszyklus steht." data-lang-en="Authentic development of a brand that stands for 100% CO2 neutrality throughout the entire lifecycle.">Authentischer Aufbau einer Marke, die für 100% CO2-Neutralität über den gesamten Lebenszyklus steht.</p>
+                </div>
+            </div>
+            <p class="mt-6 text-lg" data-lang-de="Die folgenden Abschnitte detaillieren die Analysen und Handlungsempfehlungen." data-lang-en="The following sections detail the analyses and recommendations.">Die folgenden Abschnitte detaillieren die Analysen und Handlungsempfehlungen.</p>
+        </section>
+
+        <section id="markt" class="mb-16 scroll-mt-24">
+            <h2 data-lang-de="MARKTANALYSE: DEUTSCHER CARSHARING-MARKT" data-lang-en="MARKET ANALYSIS: GERMAN CARSHARING MARKET">MARKTANALYSE: DEUTSCHER CARSHARING-MARKT</h2>
+            <p class="section-intro" data-lang-de="Der deutsche Carsharing-Markt ist dynamisch und befindet sich in einer Transformation hin zu Elektromobilität und nachhaltiger Profitabilität. Dieser Abschnitt beleuchtet Trends, aktuelle Daten, Auswirkungen und gibt Prognosen." data-lang-en="The German carsharing market is dynamic and undergoing a transformation towards electromobility and sustainable profitability. This section highlights trends, current data, impacts, and provides forecasts.">Der deutsche Carsharing-Markt ist dynamisch und befindet sich in einer Transformation hin zu Elektromobilität und nachhaltiger Profitabilität. Dieser Abschnitt beleuchtet Trends, aktuelle Daten, Auswirkungen und gibt Prognosen.</p>
+
+            <div id="markt-trendbeschreibung" class="mb-10 scroll-mt-28 card p-8">
+                <h3 data-lang-de="1. TRENDBESCHREIBUNG: TRANSFORMATION DER GETEILTEN MOBILITÄT" data-lang-en="1. TREND DESCRIPTION: TRANSFORMATION OF SHARED MOBILITY">1. TRENDBESCHREIBUNG: TRANSFORMATION DER GETEILTEN MOBILITÄT</h3>
+                <p data-lang-de="Carsharing ist ein etablierter Bestandteil urbaner Mobilität, getrieben durch veränderte Nutzerpräferenzen, technologischen Fortschritt und Umweltbewusstsein. Zentrale Trends sind die Elektrifizierung der Flotten, ein umfassenderes Nachhaltigkeitsverständnis (über den reinen Fahrbetrieb hinaus) und der strategische Schwenk von reinem Wachstum zu nachhaltiger Profitabilität. Für SEVENTs Vision der CO2-Neutralität und die geplante große E-Flotte sind dies entscheidende Rahmenbedingungen." data-lang-en="Carsharing is an established component of urban mobility, driven by changing user preferences, technological advancements, and environmental awareness. Key trends include the electrification of fleets, a broader understanding of sustainability (beyond mere driving operations), and a strategic shift from pure growth to sustainable profitability. These are crucial framework conditions for SEVENT's vision of CO2 neutrality and its planned large EV fleet.">Carsharing ist ein etablierter Bestandteil urbaner Mobilität, getrieben durch veränderte Nutzerpräferenzen, technologischen Fortschritt und Umweltbewusstsein. Zentrale Trends sind die Elektrifizierung der Flotten, ein umfassenderes Nachhaltigkeitsverständnis (über den reinen Fahrbetrieb hinaus) und der strategische Schwenk von reinem Wachstum zu nachhaltiger Profitabilität. Für SEVENTs Vision der CO2-Neutralität und die geplante große E-Flotte sind dies entscheidende Rahmenbedingungen.</p>
+            </div>
+
+            <div id="markt-aktuelle-daten" class="mb-10 scroll-mt-28 card p-8">
+                <h3 data-lang-de="2. AKTUELLE MARKTDATEN (ANFANG 2025)" data-lang-en="2. CURRENT MARKET DATA (EARLY 2025)">2. AKTUELLE MARKTDATEN (ANFANG 2025)</h3>
+                <p class="mb-6" data-lang-de="Der Markt zeigt weiterhin Wachstum, steht aber vor Herausforderungen, insbesondere bei der Skalierung von E-Flotten aufgrund der Ladeinfrastruktur." data-lang-en="The market continues to show growth but faces challenges, particularly in scaling EV fleets due to charging infrastructure.">Der Markt zeigt weiterhin Wachstum, steht aber vor Herausforderungen, insbesondere bei der Skalierung von E-Flotten aufgrund der Ladeinfrastruktur.</p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 data-lang-de="MARKTÜBERSICHT: FAHRZEUGE NACH SEGMENT" data-lang-en="MARKET OVERVIEW: VEHICLES BY SEGMENT">MARKTÜBERSICHT: FAHRZEUGE NACH SEGMENT</h4>
+                        <div class="chart-container mx-auto"><canvas id="marketVehiclesChart"></canvas></div>
+                        <p class="text-sm text-center mt-3 text-sevent-light-gray" data-lang-de="Gesamtfahrzeuge: 45.400" data-lang-en="Total Vehicles: 45,400">Gesamtfahrzeuge: 45.400</p>
+                    </div>
+                    <div>
+                        <h4 data-lang-de="MARKTÜBERSICHT: BEDIENTE KOMMUNEN NACH SEGMENT" data-lang-en="MARKET OVERVIEW: SERVED MUNICIPALITIES BY SEGMENT">MARKTÜBERSICHT: BEDIENTE KOMMUNEN NACH SEGMENT</h4>
+                        <div class="chart-container mx-auto"><canvas id="marketCommunesChart"></canvas></div>
+                         <p class="text-sm text-center mt-3 text-sevent-light-gray" data-lang-de="Gesamtkommunen: 1.393" data-lang-en="Total Municipalities: 1,393">Gesamtkommunen: 1.393</p>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <h4 data-lang-de="EV-ANTEIL IN CARSHARING-FLOTTEN (DEUTSCHLAND)" data-lang-en="EV SHARE IN CARSHARING FLEETS (GERMANY)">EV-ANTEIL IN CARSHARING-FLOTTEN (DEUTSCHLAND)</h4>
+                    <div class="chart-container mx-auto h-64 md:h-80"><canvas id="evShareTrendChart"></canvas></div>
+                    <p class="text-sm text-center mt-3 text-sevent-light-gray" data-lang-de="Der EV-Anteil stagniert bzw. ist leicht rückläufig (17,8% Jan 2024), was das &quot;EV-Paradox&quot; und die Herausforderungen bei der Ladeinfrastruktur verdeutlicht." data-lang-en="The EV share is stagnating or slightly declining (17.8% Jan 2024), highlighting the &quot;EV paradox&quot; and challenges with charging infrastructure.">Der EV-Anteil stagniert bzw. ist leicht rückläufig (17,8% Jan 2024), was das "EV-Paradox" und die Herausforderungen bei der Ladeinfrastruktur verdeutlicht.</p>
+                </div>
+                 <div class="mt-8 bg-sevent-medium-gray p-6 rounded-lg border border-sevent-green">
+                    <h4 class="text-sevent-green" data-lang-de="SCHLÜSSELERKENNTNIS FÜR SEVENT:" data-lang-en="KEY INSIGHT FOR SEVENT:">SCHLÜSSELERKENNTNIS FÜR SEVENT:</h4>
+                    <p class="text-sevent-white" data-lang-de="Die geplante Flotte von 200.000 E-Fahrzeugen würde die aktuelle Gesamtmarktgröße um ein Vielfaches übersteigen. Dies erfordert eine exzellente Ladeinfrastrukturstrategie und operative Exzellenz." data-lang-en="The planned fleet of 200,000 EVs would exceed the current total market size manifold. This requires an excellent charging infrastructure strategy and operational excellence.">Die geplante Flotte von 200.000 E-Fahrzeugen würde die aktuelle Gesamtmarktgröße um ein Vielfaches übersteigen. Dies erfordert eine exzellente Ladeinfrastrukturstrategie und operative Exzellenz.</p>
+                </div>
+            </div>
+
+            <div id="markt-auswirkungen" class="mb-10 scroll-mt-28 card p-8">
+                <h3 data-lang-de="3. AUSWIRKUNGEN AUF BRANCHE UND KUNDEN" data-lang-en="3. IMPACTS ON INDUSTRY AND CUSTOMERS">3. AUSWIRKUNGEN AUF BRANCHE UND KUNDEN</h3>
+                <p data-lang-de="Die Elektrifizierung führt zu höheren Investitionskosten und neuer operativer Komplexität für Anbieter (Lademanagement, Wartung). Kunden profitieren vom Fahrerlebnis, sind aber von der Ladeinfrastruktur abhängig. Der Wettbewerb intensiviert sich, und der Fokus auf operative Effizienz und ein nahtloses digitales Erlebnis wächst. Die Skalierung von E-Flotten stellt eine &quot;operative Kluft&quot; dar, die SEVENT mit innovativen Ansätzen überwinden muss." data-lang-en="Electrification leads to higher investment costs and new operational complexities for providers (charging management, maintenance). Customers benefit from the driving experience but depend on charging infrastructure. Competition is intensifying, and the focus on operational efficiency and a seamless digital experience is growing. Scaling EV fleets presents an &quot;operational gap&quot; that SEVENT must overcome with innovative approaches.">Die Elektrifizierung führt zu höheren Investitionskosten und neuer operativer Komplexität für Anbieter (Lademanagement, Wartung). Kunden profitieren vom Fahrerlebnis, sind aber von der Ladeinfrastruktur abhängig. Der Wettbewerb intensiviert sich, und der Fokus auf operative Effizienz und ein nahtloses digitales Erlebnis wächst. Die Skalierung von E-Flotten stellt eine "operative Kluft" dar, die SEVENT mit innovativen Ansätzen überwinden muss.</p>
+            </div>
+
+            <div id="markt-prognosen" class="scroll-mt-28 card p-8">
+                <h3 data-lang-de="4. PROGNOSEN UND EMPFEHLUNGEN" data-lang-en="4. FORECASTS AND RECOMMENDATIONS">4. PROGNOSEN UND EMPFEHLUNGEN</h3>
+                <p data-lang-de="Es wird ein fortgesetztes Marktwachstum erwartet, mit stärkerem Fokus auf Profitabilität. Die E-Carsharing-Trajektorie hängt stark von der Entwicklung der Ladeinfrastruktur ab. SEVENT steht vor dem &quot;Henne-Ei-Problem&quot; bezüglich der Ladeinfrastruktur und muss proaktiv handeln (eigene Investitionen, Partnerschaften). Politische &quot;Rückenwinde&quot; für E-Mobilität lösen nicht automatisch die operativen &quot;Gegenwinde&quot; – ein Dialog mit Entscheidungsträgern ist ratsam." data-lang-en="Continued market growth is expected, with a stronger focus on profitability. The e-carsharing trajectory heavily depends on charging infrastructure development. SEVENT faces the &quot;chicken-and-egg problem&quot; regarding charging infrastructure and must act proactively (own investments, partnerships). Political &quot;tailwinds&quot; for e-mobility do not automatically solve operational &quot;headwinds&quot; – dialogue with decision-makers is advisable.">Es wird ein fortgesetztes Marktwachstum erwartet, mit stärkerem Fokus auf Profitabilität. Die E-Carsharing-Trajektorie hängt stark von der Entwicklung der Ladeinfrastruktur ab. SEVENT steht vor dem "Henne-Ei-Problem" bezüglich der Ladeinfrastruktur und muss proaktiv handeln (eigene Investitionen, Partnerschaften). Politische "Rückenwinde" für E-Mobilität lösen nicht automatisch die operativen "Gegenwinde" – ein Dialog mit Entscheidungsträgern ist ratsam.</p>
+            </div>
+        </section>
+
+        <section id="wettbewerb" class="mb-16 scroll-mt-24">
+            <h2 data-lang-de="WETTBEWERBSANALYSE" data-lang-en="COMPETITOR ANALYSIS">WETTBEWERBSANALYSE</h2>
+             <p class="section-intro" data-lang-de="Eine klare Positionierung im intensiven Wettbewerbsumfeld ist für SEVENT unerlässlich. Dieser Abschnitt analysiert Hauptkonkurrenten, insbesondere Sixt, und identifiziert Differenzierungsmerkmale." data-lang-en="Clear positioning in the intense competitive environment is essential for SEVENT. This section analyzes main competitors, especially Sixt, and identifies differentiation features.">Eine klare Positionierung im intensiven Wettbewerbsumfeld ist für SEVENT unerlässlich. Dieser Abschnitt analysiert Hauptkonkurrenten, insbesondere Sixt, und identifiziert Differenzierungsmerkmale.</p>
+
+            <div id="wettbewerb-sixt" class="mb-10 scroll-mt-28 card p-8">
+                <h3 data-lang-de="A. SIXT – DER HAUPTKONKURRENT" data-lang-en="A. SIXT – THE MAIN COMPETITOR">A. SIXT – DER HAUPTKONKURRENT</h3>
+                <p data-lang-de="Sixt ist ein internationaler Mobilitätsdienstleister mit starkem Wachstum und Fokus auf Premium. Die aggressive EV-Strategie (100.000 BYD EVs geplant, 70-90% E-Flotte bis 2030) stellt eine direkte Herausforderung dar. Sixt kämpft jedoch mit sinkenden Restwerten von E-Fahrzeugen und potenziellen operativen Kosten. Für SEVENT dient Sixts Erfahrung als wichtige Fallstudie für Risikomanagement bei der Einführung großer E-Flotten." data-lang-en="Sixt is an international mobility service provider with strong growth and a focus on premium. Its aggressive EV strategy (100,000 BYD EVs planned, 70-90% EV fleet by 2030) poses a direct challenge. However, Sixt is struggling with declining residual values of EVs and potential operational costs. For SEVENT, Sixt's experience serves as an important case study for risk management in introducing large EV fleets.">Sixt ist ein internationaler Mobilitätsdienstleister mit starkem Wachstum und Fokus auf Premium. Die aggressive EV-Strategie (100.000 BYD EVs geplant, 70-90% E-Flotte bis 2030) stellt eine direkte Herausforderung dar. Sixt kämpft jedoch mit sinkenden Restwerten von E-Fahrzeugen und potenziellen operativen Kosten. Für SEVENT dient Sixts Erfahrung als wichtige Fallstudie für Risikomanagement bei der Einführung großer E-Flotten.</p>
+                <ul class="list-disc list-inside mt-4 space-y-2 text-sevent-light-gray">
+                    <li data-lang-de="PORTFOLIO: SIXT rent, SIXT share, SIXT ride, SIXT+" data-lang-en="PORTFOLIO: SIXT rent, SIXT share, SIXT ride, SIXT+">PORTFOLIO: SIXT rent, SIXT share, SIXT ride, SIXT+</li>
+                    <li data-lang-de="UMSATZ 2023: 3,62 Mrd. € (+18% YoY)" data-lang-en="REVENUE 2023: €3.62 billion (+18% YoY)">UMSATZ 2023: 3,62 Mrd. € (+18% YoY)</li>
+                    <li data-lang-de="FLOTTE (DURCHSCHNITT 2024): 184.300 Fahrzeuge" data-lang-en="FLEET (AVERAGE 2024): 184,300 vehicles">FLOTTE (DURCHSCHNITT 2024): 184.300 Fahrzeuge</li>
+                    <li data-lang-de="SIXT SHARE: Free-Floating (Berlin, Hamburg, München), ab 0,09 €/min." data-lang-en="SIXT SHARE: Free-floating (Berlin, Hamburg, Munich), from €0.09/min.">SIXT SHARE: Free-Floating (Berlin, Hamburg, München), ab 0,09 €/min.</li>
+                </ul>
+            </div>
+            
+            <div id="wettbewerb-weitere" class="mb-10 scroll-mt-28 card p-8">
+                <h3 data-lang-de="B. WEITERE WICHTIGE WETTBEWERBER" data-lang-en="B. OTHER KEY COMPETITORS">B. WEITERE WICHTIGE WETTBEWERBER</h3>
+                <div class="space-y-8">
+                    <div>
+                        <h4 data-lang-de="MILES MOBILITY" data-lang-en="MILES MOBILITY">MILES MOBILITY</h4>
+                        <p data-lang-de="Marktführer nach Flottengröße (>21.000 Fzg.), km-basierte Abrechnung. Ambitionierte EV-Ziele (50% bis 2025) durch Übernahme von WeShare. Starke Partnerschaften (VW, Bolt)." data-lang-en="Market leader by fleet size (>21,000 vehicles), km-based billing. Ambitious EV targets (50% by 2025) through WeShare acquisition. Strong partnerships (VW, Bolt).">Marktführer nach Flottengröße (>21.000 Fzg.), km-basierte Abrechnung. Ambitionierte EV-Ziele (50% bis 2025) durch Übernahme von WeShare. Starke Partnerschaften (VW, Bolt).</p>
+                    </div>
+                    <div>
+                        <h4 data-lang-de="FREE2MOVE (EHEM. SHARE NOW)" data-lang-en="FREE2MOVE (FORMERLY SHARE NOW)">FREE2MOVE (EHEM. SHARE NOW)</h4>
+                        <p data-lang-de="Teil von Stellantis, globale Mobilitätsplattform (10.000 Fzg. EU, 3.000 EVs). Stetige EV-Integration. Profitabel seit 2021." data-lang-en="Part of Stellantis, global mobility platform (10,000 vehicles EU, 3,000 EVs). Continuous EV integration. Profitable since 2021.">Teil von Stellantis, globale Mobilitätsplattform (10.000 Fzg. EU, 3.000 EVs). Stetige EV-Integration. Profitabel seit 2021.</p>
+                    </div>
+                    <div>
+                        <h4 data-lang-de="CAMBIO" data-lang-en="CAMBIO">CAMBIO</h4>
+                        <p data-lang-de="Stationsbasiert (>2.700 Fzg.), starke lokale Präsenz, Fokus auf Nachhaltigkeit und Ladeinfrastruktur-Kooperationen." data-lang-en="Station-based (>2,700 vehicles), strong local presence, focus on sustainability and charging infrastructure cooperations.">Stationsbasiert (>2.700 Fzg.), starke lokale Präsenz, Fokus auf Nachhaltigkeit und Ladeinfrastruktur-Kooperationen.</p>
+                    </div>
+                    <div>
+                        <h4 data-lang-de="FLINKSTER (DEUTSCHE BAHN)" data-lang-en="FLINKSTER (DEUTSCHE BAHN)">FLINKSTER (DEUTSCHE BAHN)</h4>
+                        <p data-lang-de="Stationsbasiert (>2.300 Fzg.), starke Präsenz an Bahnhöfen, Integration mit Bahnverkehr." data-lang-en="Station-based (>2,300 vehicles), strong presence at train stations, integration with rail transport.">Stationsbasiert (>2.300 Fzg.), starke Präsenz an Bahnhöfen, Integration mit Bahnverkehr.</p>
+                    </div>
+                </div>
+                <div class="mt-8">
+                     <h4 data-lang-de="VERGLEICH FLOTTENGRÖSSEN (DEUTSCHLAND, SCHÄTZUNGEN)" data-lang-en="FLEET SIZE COMPARISON (GERMANY, ESTIMATES)">VERGLEICH FLOTTENGRÖSSEN (DEUTSCHLAND, SCHÄTZUNGEN)</h4>
+                     <div class="chart-container mx-auto"><canvas id="competitorFleetSizeChart"></canvas></div>
+                </div>
+            </div>
+
+            <div id="wettbewerb-benchmarking" class="scroll-mt-28 card p-8">
+                <h3 data-lang-de="C. BENCHMARKING SEVENT" data-lang-en="C. BENCHMARKING SEVENT">C. BENCHMARKING SEVENT</h3>
+                <p data-lang-de="SEVENTs geplante Flotte von 200.000 E-Fahrzeugen und die Vision der 100% CO2-Neutralität sind starke potenzielle Differenzierungsmerkmale. Die Herausforderung liegt in der Umsetzung: operative Exzellenz, überlegenes Kundenerlebnis (insb. Laden) und Risikomanagement sind entscheidend. Die reine Flottengröße muss in einen echten Mehrwert für den Kunden umgewandelt werden." data-lang-en="SEVENT's planned fleet of 200,000 EVs and its vision of 100% CO2 neutrality are strong potential differentiators. The challenge lies in execution: operational excellence, superior customer experience (especially charging), and risk management are crucial. Sheer fleet size must be converted into real customer value.">SEVENTs geplante Flotte von 200.000 E-Fahrzeugen und die Vision der 100% CO2-Neutralität sind starke potenzielle Differenzierungsmerkmale. Die Herausforderung liegt in der Umsetzung: operative Exzellenz, überlegenes Kundenerlebnis (insb. Laden) und Risikomanagement sind entscheidend. Die reine Flottengröße muss in einen echten Mehrwert für den Kunden umgewandelt werden.</p>
+                 <div class="mt-6 bg-sevent-medium-gray p-6 rounded-lg border border-sevent-green">
+                    <h4 class="text-sevent-green" data-lang-de="STRATEGISCHE CHANCE FÜR SEVENT:" data-lang-en="STRATEGIC OPPORTUNITY FOR SEVENT:">STRATEGISCHE CHANCE FÜR SEVENT:</h4>
+                    <p class="text-sevent-white" data-lang-de="Neudefinition von &quot;Premium&quot; im E-Zeitalter – nicht nur durch Fahrzeugmarke, sondern durch ein ganzheitlich hochwertiges und nachhaltiges E-Carsharing-Erlebnis." data-lang-en="Redefining &quot;premium&quot; in the e-era – not just through car brand, but through a holistically high-quality and sustainable e-carsharing experience.">Neudefinition von "Premium" im E-Zeitalter – nicht nur durch Fahrzeugmarke, sondern durch ein ganzheitlich hochwertiges und nachhaltiges E-Carsharing-Erlebnis.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="cross-industry-innovation" class="mb-16 scroll-mt-24 card p-8">
+            <h2 data-lang-de="CROSS-INDUSTRY INNOVATION: LERNEN VON VORREITERN" data-lang-en="CROSS-INDUSTRY INNOVATION: LEARNING FROM PIONEERS">CROSS-INDUSTRY INNOVATION: LERNEN VON VORREITERN</h2>
+            <p class="section-intro" data-lang-de="Um SEVENTs Geschäftsmodell zu optimieren, ist der Blick über den Tellerrand wertvoll. Lehren von erfolgreichen Unternehmen aus verwandten Branchen können wichtige Impulse geben." data-lang-en="To optimize SEVENT's business model, looking beyond the industry is valuable. Lessons from successful companies in related sectors can provide important impetus.">Um SEVENTs Geschäftsmodell zu optimieren, ist der Blick über den Tellerrand wertvoll. Lehren von erfolgreichen Unternehmen aus verwandten Branchen können wichtige Impulse geben.</p>
+            <div class="space-y-6">
+                <div>
+                    <h4 class="text-sevent-green flex items-center"><span class="text-2xl mr-3">💡</span> <span data-lang-de="UBER: SKALIERBARE PLATTFORM & DYNAMIK" data-lang-en="UBER: SCALABLE PLATFORM & DYNAMICS">UBER: SKALIERBARE PLATTFORM & DYNAMIK</span></h4>
+                    <p data-lang-de="Lernpunkte: Aufbau einer globalen Marke, intuitive App, dynamische Preisgestaltung, Nachhaltigkeitsziele (Uber Eats emissionsfrei bis 2040), Integration traditioneller Anbieter. Relevanz für SEVENT: Skalierbare digitale Plattform, dynamische Preismodelle, Partnerschaftsstrategien." data-lang-en="Learnings: Building a global brand, intuitive app, dynamic pricing, sustainability goals (Uber Eats emission-free by 2040), integration of traditional providers. Relevance for SEVENT: Scalable digital platform, dynamic pricing models, partnership strategies.">Lernpunkte: Aufbau einer globalen Marke, intuitive App, dynamische Preisgestaltung, Nachhaltigkeitsziele (Uber Eats emissionsfrei bis 2040), Integration traditioneller Anbieter. Relevanz für SEVENT: Skalierbare digitale Plattform, dynamische Preismodelle, Partnerschaftsstrategien.</p>
+                </div>
+                <div>
+                    <h4 class="text-sevent-green flex items-center"><span class="text-2xl mr-3">💡</span> <span data-lang-de="WAYMO: SICHERHEIT & VERTRAUEN" data-lang-en="WAYMO: SAFETY & TRUST">WAYMO: SICHERHEIT & VERTRAUEN</span></h4>
+                    <p data-lang-de="Lernpunkte: Fokus auf Sicherheit und Zuverlässigkeit, vollelektrische Flotten mit erneuerbarer Energie, Vertrauensaufbau bei Nutzern und Gemeinden, operative Partnerschaften für Wartung. Relevanz für SEVENT: Sicherheitskommunikation, zuverlässiger Betrieb, Aufbau von Vertrauen (besonders bei Fahrzeugen neuerer Hersteller)." data-lang-en="Learnings: Focus on safety and reliability, all-electric fleets with renewable energy, building trust with users and communities, operational partnerships for maintenance. Relevance for SEVENT: Safety communication, reliable operation, building trust (especially with vehicles from newer manufacturers).">Lernpunkte: Fokus auf Sicherheit und Zuverlässigkeit, vollelektrische Flotten mit erneuerbarer Energie, Vertrauensaufbau bei Nutzern und Gemeinden, operative Partnerschaften für Wartung. Relevanz für SEVENT: Sicherheitskommunikation, zuverlässiger Betrieb, Aufbau von Vertrauen (besonders bei Fahrzeugen neuerer Hersteller).</p>
+                </div>
+                <div>
+                    <h4 class="text-sevent-green flex items-center"><span class="text-2xl mr-3">💡</span> <span data-lang-de="FLEETIO: EFFIZIENTES FLOTTENMANAGEMENT" data-lang-en="FLEETIO: EFFICIENT FLEET MANAGEMENT">FLEETIO: EFFIZIENTES FLOTTENMANAGEMENT</span></h4>
+                    <p data-lang-de="Lernpunkte: Zentralisierte Plattform für Fahrzeugverfolgung, Wartung, Kosten, TCO-Analyse, Automatisierung. Relevanz für SEVENT: Notwendigkeit eines hochentwickelten, E-Fahrzeug-spezifischen Flottenmanagementsystems für 200.000 Fahrzeuge." data-lang-en="Learnings: Centralized platform for vehicle tracking, maintenance, costs, TCO analysis, automation. Relevance for SEVENT: Need for a highly developed, EV-specific fleet management system for 200,000 vehicles.">Lernpunkte: Zentralisierte Plattform für Fahrzeugverfolgung, Wartung, Kosten, TCO-Analyse, Automatisierung. Relevanz für SEVENT: Notwendigkeit eines hochentwickelten, E-Fahrzeug-spezifischen Flottenmanagementsystems für 200.000 Fahrzeuge.</p>
+                </div>
+                <div>
+                    <h4 class="text-sevent-green flex items-center"><span class="text-2xl mr-3">💡</span> <span data-lang-de="FLIXBUS: DIGITAL-FIRST & MARKE" data-lang-en="FLIXBUS: DIGITAL-FIRST & BRAND">FLIXBUS: DIGITAL-FIRST & MARKE</span></h4>
+                    <p data-lang-de="Lernpunkte: Vermögensschonendes Modell (nicht direkt übertragbar), starke digitale Kundenschnittstelle, Technologieeinsatz (AI/ML), Aufbau einer Marke mit Nachhaltigkeitsaspekten. Relevanz für SEVENT: Weltklasse digitale Customer Journey, Markenaufbau um Nachhaltigkeit." data-lang-en="Learnings: Asset-light model (not directly transferable), strong digital customer interface, technology use (AI/ML), brand building with sustainability aspects. Relevance for SEVENT: World-class digital customer journey, brand building around sustainability.">Lernpunkte: Vermögensschonendes Modell (nicht direkt übertragbar), starke digitale Kundenschnittstelle, Technologieeinsatz (AI/ML), Aufbau einer Marke mit Nachhaltigkeitsaspekten. Relevanz für SEVENT: Weltklasse digitale Customer Journey, Markenaufbau um Nachhaltigkeit.</p>
+                </div>
+            </div>
+            <div class="mt-8 bg-sevent-medium-gray p-6 rounded-lg border border-sevent-green">
+                <h4 class="text-sevent-green" data-lang-de="SYNTHESE FÜR SEVENT:" data-lang-en="SYNTHESIS FOR SEVENT:">SYNTHESE FÜR SEVENT:</h4>
+                <p class="text-sevent-white" data-lang-de="Erfolgsfaktoren sind die Kombination aus massiver E-Skalierung und CO2-Neutralität, operative Exzellenz (Laden, Wartung), überlegenes digitales Kundenerlebnis, vertrauenswürdige Marke und strategische Partnerschaften." data-lang-en="Success factors are the combination of massive EV scaling and CO2 neutrality, operational excellence (charging, maintenance), superior digital customer experience, trustworthy brand, and strategic partnerships.">Erfolgsfaktoren sind die Kombination aus massiver E-Skalierung und CO2-Neutralität, operative Exzellenz (Laden, Wartung), überlegenes digitales Kundenerlebnis, vertrauenswürdige Marke und strategische Partnerschaften.</p>
+            </div>
+        </section>
+        
+        <section id="strategische-hebel" class="mb-16 scroll-mt-24">
+            <h2 data-lang-de="STRATEGISCHE HEBEL FÜR WACHSTUM UND PROFITABILITÄT" data-lang-en="STRATEGIC LEVERS FOR GROWTH AND PROFITABILITY">STRATEGISCHE HEBEL FÜR WACHSTUM UND PROFITABILITÄT</h2>
+            <p class="section-intro" data-lang-de="Zur Erreichung der ambitionierten Ziele von SEVENT werden hier konkrete strategische Hebel identifiziert und priorisiert." data-lang-en="To achieve SEVENT's ambitious goals, concrete strategic levers are identified and prioritized here.">Zur Erreichung der ambitionierten Ziele von SEVENT werden hier konkrete strategische Hebel identifiziert und priorisiert.</p>
+
+            <div id="hebel-identifikation" class="mb-10 scroll-mt-28 card p-8">
+                <h3 data-lang-de="IDENTIFIKATION VON 5+ STRATEGISCHEN HEBELN" data-lang-en="IDENTIFICATION OF 5+ STRATEGIC LEVERS">IDENTIFIKATION VON 5+ STRATEGISCHEN HEBELN</h3>
+                <ul class="list-decimal list-inside space-y-3 text-sevent-light-gray pl-4">
+                    <li data-lang-de="AUFBAU EINES PROPRIETÄREN/PRÄFERENZIELLEN EV-LADENETZES: Kritisch für Skalierung und Kostenkontrolle." data-lang-en="BUILDING A PROPRIETARY/PREFERENTIAL EV CHARGING NETWORK: Critical for scaling and cost control.">AUFBAU EINES PROPRIETÄREN/PRÄFERENZIELLEN EV-LADENETZES: Kritisch für Skalierung und Kostenkontrolle.</li>
+                    <li data-lang-de="„TOTAL ZERO“ NACHHALTIGKEITS-BRANDING & PRODUKT-DIFFERENZIERUNG: Authentische CO2-Neutralität als USP." data-lang-en="“TOTAL ZERO” SUSTAINABILITY BRANDING & PRODUCT DIFFERENTIATION: Authentic CO2 neutrality as a USP.">„TOTAL ZERO“ NACHHALTIGKEITS-BRANDING & PRODUKT-DIFFERENZIERUNG: Authentische CO2-Neutralität als USP.</li>
+                    <li data-lang-de="STRATEGISCHE ALLIANZEN FÜR URBANE & INTERMODALE INTEGRATION: Partnerschaften für Reichweite und Akzeptanz." data-lang-en="STRATEGIC ALLIANCES FOR URBAN & INTERMODAL INTEGRATION: Partnerships for reach and acceptance.">STRATEGISCHE ALLIANZEN FÜR URBANE & INTERMODALE INTEGRATION: Partnerschaften für Reichweite und Akzeptanz.</li>
+                    <li data-lang-de="FORTSCHRITTLICHE DATENANALYSE FÜR FLOTTENOPTIMIERUNG & DYNAMISCHE PREISGESTALTUNG: KI/ML für Effizienz und Umsatz." data-lang-en="ADVANCED DATA ANALYSIS FOR FLEET OPTIMIZATION & DYNAMIC PRICING: AI/ML for efficiency and revenue.">FORTSCHRITTLICHE DATENANALYSE FÜR FLOTTENOPTIMIERUNG & DYNAMISCHE PREISGESTALTUNG: KI/ML für Effizienz und Umsatz.</li>
+                    <li data-lang-de="B2B CORPORATE MOBILITY SOLUTIONS: Maßgeschneiderte Angebote für Geschäftskunden." data-lang-en="B2B CORPORATE MOBILITY SOLUTIONS: Tailored offers for business customers.">B2B CORPORATE MOBILITY SOLUTIONS: Maßgeschneiderte Angebote für Geschäftskunden.</li>
+                    <li data-lang-de="ÜBERLEGENES DIGITALES KUNDENERLEBNIS & LOYALITÄTS-ÖKOSYSTEM: Erstklassige App und Kundenbindung." data-lang-en="SUPERIOR DIGITAL CUSTOMER EXPERIENCE & LOYALTY ECOSYSTEM: First-class app and customer retention.">ÜBERLEGENES DIGITALES KUNDENERLEBNIS & LOYALITÄTS-ÖKOSYSTEM: Erstklassige App und Kundenbindung.</li>
+                </ul>
+            </div>
+
+            <div id="hebel-priorisierung" class="scroll-mt-28 card p-8">
+                <h3 data-lang-de="PRIORISIERUNG UND TOP 3 EMPFEHLUNGEN" data-lang-en="PRIORITIZATION AND TOP 3 RECOMMENDATIONS">PRIORISIERUNG UND TOP 3 EMPFEHLUNGEN</h3>
+                <p class="mb-6" data-lang-de="Die Hebel wurden nach potenzieller Auswirkung (A) und Durchführbarkeit (D) bewertet (Skala 1-5). Hier die Übersicht und die Top 3 Empfehlungen:" data-lang-en="The levers were evaluated by potential impact (I) and feasibility (F) (scale 1-5). Here is the overview and the top 3 recommendations:">Die Hebel wurden nach potenzieller Auswirkung (A) und Durchführbarkeit (D) bewertet (Skala 1-5). Hier die Übersicht und die Top 3 Empfehlungen:</p>
+                
+                <div class="overflow-x-auto shadow-md rounded-lg border border-sevent-green">
+                    <table class="min-w-full divide-y divide-sevent-medium-gray" id="leversTable">
+                        <thead class="bg-sevent-medium-gray">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-sevent-green uppercase tracking-wider cursor-pointer" onclick="sortTable(0)" data-lang-de="HEBEL" data-lang-en="LEVER">HEBEL</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-sevent-green uppercase tracking-wider cursor-pointer" onclick="sortTable(1)" data-lang-de="AUSWIRKUNG (1-5)" data-lang-en="IMPACT (1-5)">AUSWIRKUNG (1-5)</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-sevent-green uppercase tracking-wider cursor-pointer" onclick="sortTable(2)" data-lang-de="DURCHFÜHRBARKEIT (1-5)" data-lang-en="FEASIBILITY (1-5)">DURCHFÜHRBARKEIT (1-5)</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-sevent-green uppercase tracking-wider cursor-pointer" onclick="sortTable(3)" data-lang-de="SCORE (A+D)" data-lang-en="SCORE (I+F)">SCORE (A+D)</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-sevent-green uppercase tracking-wider" data-lang-de="EMPFEHLUNG" data-lang-en="RECOMMENDATION">EMPFEHLUNG</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-sevent-dark-gray divide-y divide-sevent-medium-gray">
+                            </tbody>
+                    </table>
+                </div>
+
+                <h4 class="mt-8 text-sevent-green" data-lang-de="TOP 3 EMPFEHLUNGEN FÜR SOFORTIGEN FOKUS:" data-lang-en="TOP 3 RECOMMENDATIONS FOR IMMEDIATE FOCUS:">TOP 3 EMPFEHLUNGEN FÜR SOFORTIGEN FOKUS:</h4>
+                 <div class="mt-6 space-y-6">
+                    <div class="p-6 border-2 border-sevent-green rounded-lg bg-sevent-medium-gray priority-border glow-effect">
+                        <p class="font-semibold text-lg text-sevent-white" data-lang-de="1. PROPRIETÄRES/PRÄFERENZIELLES EV-LADENETZ (SCORE 7, ABER HÖCHSTE STRATEGISCHE NOTWENDIGKEIT)" data-lang-en="1. PROPRIETARY/PREFERENTIAL EV CHARGING NETWORK (SCORE 7, BUT HIGHEST STRATEGIC NECESSITY)">1. PROPRIETÄRES/PRÄFERENZIELLES EV-LADENETZ (SCORE 7, ABER HÖCHSTE STRATEGISCHE NOTWENDIGKEIT)</p>
+                        <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="Sicherstellung der Flottenverfügbarkeit, Kostenreduktion, Wettbewerbsvorteil. Erfordert Kapital und schnelle Umsetzung." data-lang-en="Ensuring fleet availability, cost reduction, competitive advantage. Requires capital and rapid implementation.">Sicherstellung der Flottenverfügbarkeit, Kostenreduktion, Wettbewerbsvorteil. Erfordert Kapital und schnelle Umsetzung.</p>
+                    </div>
+                     <div class="p-6 border-2 border-sevent-green rounded-lg bg-sevent-medium-gray priority-border glow-effect">
+                        <p class="font-semibold text-lg text-sevent-white" data-lang-de="2. FORTSCHRITTLICHE DATENANALYSE & DYNAMISCHE PREISGESTALTUNG (SCORE 8)" data-lang-en="2. ADVANCED DATA ANALYSIS & DYNAMIC PRICING (SCORE 8)">2. FORTSCHRITTLICHE DATENANALYSE & DYNAMISCHE PREISGESTALTUNG (SCORE 8)</p>
+                        <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="Maximierung von Auslastung und Umsatz, Kostenminimierung. Erfordert Technologie-Investitionen und Fachkräfte." data-lang-en="Maximizing utilization and revenue, minimizing costs. Requires technology investments and skilled personnel.">Maximierung von Auslastung und Umsatz, Kostenminimierung. Erfordert Technologie-Investitionen und Fachkräfte.</p>
+                    </div>
+                     <div class="p-6 border-2 border-sevent-green rounded-lg bg-sevent-medium-gray priority-border glow-effect">
+                        <p class="font-semibold text-lg text-sevent-white" data-lang-de="3. „TOTAL ZERO“ NACHHALTIGKEITS-BRANDING & PRODUKT-DIFFERENZIERUNG (SCORE 8)" data-lang-en="3. “TOTAL ZERO” SUSTAINABILITY BRANDING & PRODUCT DIFFERENTIATION (SCORE 8)">3. „TOTAL ZERO“ NACHHALTIGKEITS-BRANDING & PRODUKT-DIFFERENZIERUNG (SCORE 8)</p>
+                        <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="Starke Markendifferenzierung, Gewinnung umweltbewusster Kunden. Erfordert Glaubwürdigkeit und effektives Marketing." data-lang-en="Strong brand differentiation, attracting environmentally conscious customers. Requires credibility and effective marketing.">Starke Markendifferenzierung, Gewinnung umweltbewusster Kunden. Erfordert Glaubwürdigkeit und effektives Marketing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="nachhaltigkeit" class="mb-16 scroll-mt-24 card p-8">
+            <h2 data-lang-de="NACHHALTIGKEITS-BLUEPRINT: REALISIERUNG VON &quot;100% CO2-NEUTRALITÄT&quot;" data-lang-en="SUSTAINABILITY BLUEPRINT: REALIZING &quot;100% CO2 NEUTRALITY&quot;">NACHHALTIGKEITS-BLUEPRINT: REALISIERUNG VON "100% CO2-NEUTRALITÄT"</h2>
+            <p class="section-intro" data-lang-de="SEVENTs Vision der 100% CO2-Neutralität erfordert eine ganzheitliche Strategie, die über den reinen Elektrobetrieb hinausgeht. Glaubwürdigkeit und Transparenz sind hierbei entscheidend." data-lang-en="SEVENT's vision of 100% CO2 neutrality requires a holistic strategy that goes beyond pure electric operation. Credibility and transparency are crucial here.">SEVENTs Vision der 100% CO2-Neutralität erfordert eine ganzheitliche Strategie, die über den reinen Elektrobetrieb hinausgeht. Glaubwürdigkeit und Transparenz sind hierbei entscheidend.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-6">
+                <div class="p-6 bg-sevent-medium-gray rounded-lg border border-sevent-green hover:shadow-lg transition-shadow glow-effect">
+                    <h4 class="flex items-center text-sevent-green"><span class="text-3xl mr-3">♻️</span> <span data-lang-de="FAHRZEUG-LEBENSZYKLUSMANAGEMENT" data-lang-en="VEHICLE LIFECYCLE MANAGEMENT">FAHRZEUG-LEBENSZYKLUSMANAGEMENT</span></h4>
+                    <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="CO2-reduzierte Produktion (in Koop. mit Hersteller), Wartung für Langlebigkeit, Batterierecycling & Second-Life." data-lang-en="CO2-reduced production (in coop. with manufacturer), maintenance for longevity, battery recycling & second-life.">CO2-reduzierte Produktion (in Koop. mit Hersteller), Wartung für Langlebigkeit, Batterierecycling & Second-Life.</p>
+                </div>
+                <div class="p-6 bg-sevent-medium-gray rounded-lg border border-sevent-green hover:shadow-lg transition-shadow glow-effect">
+                    <h4 class="flex items-center text-sevent-green"><span class="text-3xl mr-3">⚡</span> <span data-lang-de="ERNEUERBARE ENERGIE FÜRS LADEN" data-lang-en="RENEWABLE ENERGY FOR CHARGING">ERNEUERBARE ENERGIE FÜRS LADEN</span></h4>
+                    <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="100% zertifizierter Ökostrom für die gesamte Flotte (PPAs, Ökostromtarife, eigene Erzeugung)." data-lang-en="100% certified green electricity for the entire fleet (PPAs, green electricity tariffs, own generation).">100% zertifizierter Ökostrom für die gesamte Flotte (PPAs, Ökostromtarife, eigene Erzeugung).</p>
+                </div>
+                <div class="p-6 bg-sevent-medium-gray rounded-lg border border-sevent-green hover:shadow-lg transition-shadow glow-effect">
+                    <h4 class="flex items-center text-sevent-green"><span class="text-3xl mr-3">🌿</span> <span data-lang-de="FÖRDERUNG VON ECO-DRIVING" data-lang-en="PROMOTION OF ECO-DRIVING">FÖRDERUNG VON ECO-DRIVING</span></h4>
+                    <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="Anreize für energieeffiziente Fahrweise via App, intelligente Fahrzeugplatzierung und Ladepläne." data-lang-en="Incentives for energy-efficient driving via app, intelligent vehicle placement, and charging plans.">Anreize für energieeffiziente Fahrweise via App, intelligente Fahrzeugplatzierung und Ladepläne.</p>
+                </div>
+                <div class="p-6 bg-sevent-medium-gray rounded-lg border border-sevent-green hover:shadow-lg transition-shadow glow-effect">
+                    <h4 class="flex items-center text-sevent-green"><span class="text-3xl mr-3">🔄</span> <span data-lang-de="KREISLAUFWIRTSCHAFT" data-lang-en="CIRCULAR ECONOMY">KREISLAUFWIRTSCHAFT</span></h4>
+                    <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="Nutzung nachhaltiger Materialien, Abfallminimierung in allen Betriebsbereichen." data-lang-en="Use of sustainable materials, waste minimization in all operational areas.">Nutzung nachhaltiger Materialien, Abfallminimierung in allen Betriebsbereichen.</p>
+                </div>
+                <div class="p-6 bg-sevent-medium-gray rounded-lg border border-sevent-green hover:shadow-lg transition-shadow glow-effect">
+                    <h4 class="flex items-center text-sevent-green"><span class="text-3xl mr-3">📢</span> <span data-lang-de="AUTHENTISCHE MARKENIDENTITÄT" data-lang-en="AUTHENTIC BRAND IDENTITY">AUTHENTISCHE MARKENIDENTITÄT</span></h4>
+                    <p class="text-sm text-sevent-light-gray mt-2" data-lang-de="Transparente Berichterstattung, Zertifizierungen, Partnerschaften, klare Kommunikation." data-lang-en="Transparent reporting, certifications, partnerships, clear communication.">Transparente Berichterstattung, Zertifizierungen, Partnerschaften, klare Kommunikation.</p>
+                </div>
+            </div>
+             <div class="mt-8 bg-sevent-medium-gray p-6 rounded-lg border border-sevent-green">
+                <h4 class="text-sevent-green" data-lang-de="KERNBOTSCHAFT:" data-lang-en="KEY MESSAGE:">KERNBOTSCHAFT:</h4>
+                <p class="text-sevent-white" data-lang-de="Die „100% CO2-Neutralität“ ist ein mächtiges Differenzierungsmerkmal, wenn sie umfassend realisiert und glaubwürdig kommuniziert wird. Sie ist integraler Bestandteil des Geschäftsmodells." data-lang-en="“100% CO2 neutrality” is a powerful differentiator if comprehensively realized and credibly communicated. It is an integral part of the business model.">Die „100% CO2-Neutralität“ ist ein mächtiges Differenzierungsmerkmal, wenn sie umfassend realisiert und glaubwürdig kommuniziert wird. Sie ist integraler Bestandteil des Geschäftsmodells.</p>
+            </div>
+        </section>
+
+        <section id="roadmap" class="mb-16 scroll-mt-24 card p-8">
+            <h2 data-lang-de="STRATEGISCHE IMPERATIVE UND ROADMAP FÜR SEVENT" data-lang-en="STRATEGIC IMPERATIVES AND ROADMAP FOR SEVENT">STRATEGISCHE IMPERATIVE UND ROADMAP FÜR SEVENT</h2>
+            <p class="section-intro" data-lang-de="Die Analysen münden in klare strategische Imperative. Angesichts der Dringlichkeit ist ein entschlossenes Vorgehen unerlässlich." data-lang-en="The analyses culminate in clear strategic imperatives. Given the urgency, decisive action is essential.">Die Analysen münden in klare strategische Imperative. Angesichts der Dringlichkeit ist ein entschlossenes Vorgehen unerlässlich.</p>
+            
+            <h3 class="text-sevent-green" data-lang-de="KONSOLIDIERTE EINSICHTEN UND WEG NACH VORN:" data-lang-en="CONSOLIDATED INSIGHTS AND PATH FORWARD:">KONSOLIDIERTE EINSICHTEN UND WEG NACH VORN:</h3>
+            <p class="mb-4 text-sevent-light-gray" data-lang-de="SEVENT hat die Chance, den deutschen Carsharing-Markt mit 200.000 E-Fahrzeugen und 100% CO2-Neutralität neu zu definieren. Kritische Herausforderungen sind intensiver Wettbewerb (v.a. Sixt), operative Komplexität von E-Flotten und die Notwendigkeit fehlerfreier Exekution." data-lang-en="SEVENT has the opportunity to redefine the German carsharing market with 200,000 EVs and 100% CO2 neutrality. Critical challenges include intense competition (especially Sixt), operational complexity of EV fleets, and the need for flawless execution.">SEVENT hat die Chance, den deutschen Carsharing-Markt mit 200.000 E-Fahrzeugen und 100% CO2-Neutralität neu zu definieren. Kritische Herausforderungen sind intensiver Wettbewerb (v.a. Sixt), operative Komplexität von E-Flotten und die Notwendigkeit fehlerfreier Exekution.</p>
+            
+            <h3 class="text-sevent-green" data-lang-de="WICHTIGE HANDLUNGSEMPFEHLUNGEN:" data-lang-en="KEY RECOMMENDATIONS FOR ACTION:">WICHTIGE HANDLUNGSEMPFEHLUNGEN:</h3>
+            <div class="space-y-6 mt-6">
+                <div class="p-4 border-l-4 border-sevent-green bg-sevent-medium-gray rounded-r-md glow-effect">
+                    <p><strong class="text-sevent-green" data-lang-de="1. ROBUSTE LADEINFRASTRUKTUR:" data-lang-en="1. ROBUST CHARGING INFRASTRUCTURE:">1. ROBUSTE LADEINFRASTRUKTUR:</strong> <span data-lang-de="Mehrstufiger Ansatz (kurz-, mittel-, langfristig) für Zugang und Aufbau eigener/präferenzieller Ladepunkte. Integration intelligenter Ladealgorithmen. Lobbyarbeit." data-lang-en="Multi-stage approach (short-, medium-, long-term) for access and development of own/preferential charging points. Integration of smart charging algorithms. Lobbying.">Mehrstufiger Ansatz (kurz-, mittel-, langfristig) für Zugang und Aufbau eigener/präferenzieller Ladepunkte. Integration intelligenter Ladealgorithmen. Lobbyarbeit.</span></p>
+                </div>
+                <div class="p-4 border-l-4 border-sevent-green bg-sevent-medium-gray rounded-r-md glow-effect">
+                    <p><strong class="text-sevent-green" data-lang-de="2. DATENGESTEUERTE OPERATIVE EXZELLENZ:" data-lang-en="2. DATA-DRIVEN OPERATIONAL EXCELLENCE:">2. DATENGESTEUERTE OPERATIVE EXZELLENZ:</strong> <span data-lang-de="Investition in Flottenmanagement- & Analyseplattform. Algorithmen für dynamische Preise, optimale Allokation, prädiktive Wartung." data-lang-en="Investment in fleet management & analytics platform. Algorithms for dynamic pricing, optimal allocation, predictive maintenance.">Investition in Flottenmanagement- & Analyseplattform. Algorithmen für dynamische Preise, optimale Allokation, prädiktive Wartung.</span></p>
+                </div>
+                <div class="p-4 border-l-4 border-sevent-green bg-sevent-medium-gray rounded-r-md glow-effect">
+                    <p><strong class="text-sevent-green" data-lang-de="3. KONSEQUENTE &quot;TOTAL ZERO&quot; NACHHALTIGKEITSVISION:" data-lang-en="3. CONSISTENT &quot;TOTAL ZERO&quot; SUSTAINABILITY VISION:">3. KONSEQUENTE "TOTAL ZERO" NACHHALTIGKEITSVISION:</strong> <span data-lang-de="Verankerung in allen Bereichen (Beschaffung, Betrieb, Recycling). Transparente Kommunikation, Produktvarianten (SEVENT Green)." data-lang-en="Anchoring in all areas (procurement, operation, recycling). Transparent communication, product variants (SEVENT Green).">Verankerung in allen Bereichen (Beschaffung, Betrieb, Recycling). Transparente Kommunikation, Produktvarianten (SEVENT Green).</span></p>
+                </div>
+            </div>
+
+            <h4 class="mt-8 text-sevent-white" data-lang-de="WEITERE WICHTIGE EMPFEHLUNGEN:" data-lang-en="OTHER KEY RECOMMENDATIONS:">WEITERE WICHTIGE EMPFEHLUNGEN:</h4>
+            <ul class="list-disc list-inside mt-4 space-y-2 text-sevent-light-gray pl-4">
+                <li data-lang-de="PHASENWEISER FLOTTEN-ROLLOUT: Start in Pilotstädten zur Optimierung operativer Prozesse." data-lang-en="PHASED FLEET ROLLOUT: Start in pilot cities to optimize operational processes.">PHASENWEISER FLOTTEN-ROLLOUT: Start in Pilotstädten zur Optimierung operativer Prozesse.</li>
+                <li data-lang-de="STÄRKUNG INTERNER KOMPETENZEN: Aufbau von Know-how in EV-Management, Ladeinfrastruktur, Datenanalyse. Robuste Projektstrukturen." data-lang-en="STRENGTHENING INTERNAL COMPETENCIES: Building know-how in EV management, charging infrastructure, data analysis. Robust project structures.">STÄRKUNG INTERNER KOMPETENZEN: Aufbau von Know-how in EV-Management, Ladeinfrastruktur, Datenanalyse. Robuste Projektstrukturen.</li>
+                <li data-lang-de="AGILITÄT UND KONTINUIERLICHES LERNEN: Flexible Unternehmenskultur, schnelles Lernen und Anpassungsfähigkeit." data-lang-en="AGILITY AND CONTINUOUS LEARNING: Flexible corporate culture, rapid learning, and adaptability.">AGILITÄT UND KONTINUIERLICHES LERNEN: Flexible Unternehmenskultur, schnelles Lernen und Anpassungsfähigkeit.</li>
+            </ul>
+            <p class="mt-8 font-semibold text-lg text-sevent-white" data-lang-de="Die Realisierung der Vision von SEVENT erfordert Mut, strategische Weitsicht und exzellente Umsetzung, um die Zukunft der nachhaltigen Mobilität in Deutschland zu prägen." data-lang-en="Realizing SEVENT's vision requires courage, strategic foresight, and excellent execution to shape the future of sustainable mobility in Germany.">Die Realisierung der Vision von SEVENT erfordert Mut, strategische Weitsicht und exzellente Umsetzung, um die Zukunft der nachhaltigen Mobilität in Deutschland zu prägen.</p>
+        </section>
+    </main>
+
+    <footer class="py-10 bg-sevent-dark-gray text-sevent-light-gray text-center border-t-2 border-sevent-green">
+        <p class="text-lg">&copy; 2025 SEVENT® - THE FUTURE OF DRIVING</p>
+        <p class="text-sm mt-1" data-lang-de="Strategische Analyse. Alle Rechte vorbehalten." data-lang-en="Strategic Analysis. All rights reserved.">Strategische Analyse. Alle Rechte vorbehalten.</p>
+    </footer>
+
+    <script>
+        // Store chart instances globally
+        let marketVehiclesChartInstance, marketCommunesChartInstance, evShareTrendChartInstance, competitorFleetSizeChartInstance;
+        let currentLanguage = 'de'; // Default language
+
+        // Translations for chart elements and dynamic content
+        const chartTexts = {
+            de: {
+                marketVehiclesTitle: 'ANZAHL FAHRZEUGE',
+                marketCommunesTitle: 'ANZAHL KOMMUNEN',
+                evShareTitle: 'EV-ANTEIL IN %',
+                evShareLabel: 'EV-Anteil (%)',
+                competitorFleetTitle: 'ANZAHL FAHRZEUGE',
+                competitorFleetLabel: 'Geschätzte Flottengröße (DE)',
+                tableLever: 'HEBEL',
+                tableImpact: 'AUSWIRKUNG (1-5)',
+                tableFeasibility: 'DURCHFÜHRBARKEIT (1-5)',
+                tableScore: 'SCORE (A+D)',
+                tableRecommendation: 'EMPFEHLUNG',
+                top3Text: "TOP 3",
+                strategicNecessityText: "Strateg. Notwendigkeit"
+            },
+            en: {
+                marketVehiclesTitle: 'NUMBER OF VEHICLES',
+                marketCommunesTitle: 'NUMBER OF MUNICIPALITIES',
+                evShareTitle: 'EV SHARE IN %',
+                evShareLabel: 'EV Share (%)',
+                competitorFleetTitle: 'NUMBER OF VEHICLES',
+                competitorFleetLabel: 'Estimated Fleet Size (DE)',
+                tableLever: 'LEVER',
+                tableImpact: 'IMPACT (1-5)',
+                tableFeasibility: 'FEASIBILITY (1-5)',
+                tableScore: 'SCORE (I+F)', // Impact + Feasibility
+                tableRecommendation: 'RECOMMENDATION',
+                top3Text: "TOP 3",
+                strategicNecessityText: "Strategic Necessity"
+            }
+        };
+        
+        const leversData = [
+            { 
+                name_de: '1. Proprietäres/ Präferenzielles EV-Ladenetz', name_en: '1. Proprietary/ Preferential EV Charging Network', 
+                impact: 5, feasibility: 2, recommended: true, 
+                note_de: "Kritisch für Skalierbarkeit von 200.000 EVs; hohe Auswirkung auf Verfügbarkeit & Kosten. Jedoch kapitalintensiv und zeitaufwendig.", 
+                note_en: "Critical for scalability of 200,000 EVs; high impact on availability & costs. However, capital-intensive and time-consuming." 
+            },
+            { 
+                name_de: '2. „Total Zero“ Nachhaltigkeits-Branding & Produkt-Tiering', name_en: '2. “Total Zero” Sustainability Branding & Product Tiering', 
+                impact: 4, feasibility: 4, recommended: true, 
+                note_de: "Starke Differenzierung, Markenbildung, Preissetzungsmacht. Benötigt konsequente Umsetzung und transparente Kommunikation.", 
+                note_en: "Strong differentiation, brand building, pricing power. Requires consistent implementation and transparent communication." 
+            },
+            { 
+                name_de: '3. Strategische Allianzen für urbane & intermodale Integration', name_en: '3. Strategic Alliances for Urban & Intermodal Integration', 
+                impact: 4, feasibility: 3, recommended: false, 
+                note_de: "Erhöht Reichweite und Kundenakzeptanz. Erfolg hängt von Partnerauswahl und -management ab.", 
+                note_en: "Increases reach and customer acceptance. Success depends on partner selection and management." 
+            },
+            { 
+                name_de: '4. Fortschrittliche Datenanalyse & Dynamische Preisgestaltung', name_en: '4. Advanced Data Analysis & Dynamic Pricing', 
+                impact: 5, feasibility: 3, recommended: true, 
+                note_de: "Enormes Potenzial zur Effizienzsteigerung und Umsatzmaximierung. Erfordert signifikante Investitionen in Technologie und Fachkräfte.", 
+                note_en: "Enormous potential for efficiency increase and revenue maximization. Requires significant investments in technology and skilled personnel." 
+            },
+            { 
+                name_de: '5. B2B Corporate Mobility Solutions', name_en: '5. B2B Corporate Mobility Solutions', 
+                impact: 3, feasibility: 4, recommended: false, 
+                note_de: "Stabile Einnahmen, gute Auslastung. Erfordert spezifische Vertriebs- und Betreuungsstrukturen.", 
+                note_en: "Stable revenues, good utilization. Requires specific sales and support structures." 
+            },
+            { 
+                name_de: '6. Überlegenes digitales Kundenerlebnis & Loyalität', name_en: '6. Superior Digital Customer Experience & Loyalty', 
+                impact: 4, feasibility: 3, recommended: false, 
+                note_de: "Entscheidend für Kundengewinnung und -bindung. Kontinuierliche Entwicklung und Anpassung notwendig.", 
+                note_en: "Crucial for customer acquisition and retention. Continuous development and adaptation necessary."
+            }
+        ];
+
+
+        function translatePage(lang) {
+            document.documentElement.lang = lang; 
+            document.querySelectorAll('[data-lang-de]').forEach(el => {
+                let translatedText;
+                if (lang === 'en') {
+                    translatedText = el.dataset.langEn; 
+                } else { 
+                    translatedText = el.dataset.langDe; 
+                }
+
+                if (typeof translatedText === 'undefined') { 
+                    translatedText = el.dataset.langDe;
+                }
+
+                if (typeof translatedText !== 'undefined') {
+                    const isNavLinkWithArrow = el.classList.contains('nav-link') && el.querySelector('span.arrow-down');
+
+                    if (isNavLinkWithArrow) {
+                        if (el.childNodes.length > 0 && el.childNodes[0].nodeType === Node.TEXT_NODE) {
+                            el.childNodes[0].nodeValue = translatedText.trim() + ' '; 
+                        }
+                    } else {
+                        el.textContent = translatedText;
+                    }
+                }
+            });
+
+            // Update chart texts
+            if (marketVehiclesChartInstance) {
+                marketVehiclesChartInstance.options.scales.y.title.text = chartTexts[lang].marketVehiclesTitle;
+                marketVehiclesChartInstance.update();
+            }
+            if (marketCommunesChartInstance) {
+                marketCommunesChartInstance.options.scales.y.title.text = chartTexts[lang].marketCommunesTitle;
+                marketCommunesChartInstance.update();
+            }
+            if (evShareTrendChartInstance) {
+                evShareTrendChartInstance.options.scales.y.title.text = chartTexts[lang].evShareTitle;
+                evShareTrendChartInstance.data.datasets[0].label = chartTexts[lang].evShareLabel;
+                evShareTrendChartInstance.update();
+            }
+            if (competitorFleetSizeChartInstance) {
+                competitorFleetSizeChartInstance.options.scales.x.title.text = chartTexts[lang].competitorFleetTitle;
+                competitorFleetSizeChartInstance.data.datasets[0].label = chartTexts[lang].competitorFleetLabel; 
+                competitorFleetSizeChartInstance.update();
+            }
+
+            populateLeversTable(lang);
+
+            const toggleButton = document.getElementById('languageToggle');
+            toggleButton.textContent = lang === 'de' ? 'EN' : 'DE';
+        }
+
+        function populateLeversTable(lang) {
+            const leversTableBody = document.getElementById('leversTable')?.querySelector('tbody');
+            if (!leversTableBody) return;
+
+            leversTableBody.innerHTML = ''; 
+
+            const seventGreen = '#7ED321';
+            const seventBlack = '#000000';
+            const seventLightGray = '#CCCCCC';
+            const seventMediumGray = '#2d2d2d';
+
+            leversData.forEach(lever => {
+                const row = leversTableBody.insertRow();
+                row.insertCell().textContent = lever['name_' + lang];
+                row.cells[0].style.fontWeight = '600';
+                row.insertCell().textContent = lever.impact;
+                row.insertCell().textContent = lever.feasibility;
+                const score = lever.impact + lever.feasibility;
+                row.insertCell().textContent = score;
+                const recommendationCell = row.insertCell();
+                if (lever.recommended) {
+                    recommendationCell.innerHTML = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full" style="background-color: ${seventGreen}; color: ${seventBlack}; box-shadow: 0 0 5px ${seventGreen};">${chartTexts[lang].top3Text}</span>`;
+                    if (lever.name_de.includes("Ladenetz")) { 
+                         recommendationCell.innerHTML += `<br><span class="text-xs" style="color: ${seventLightGray};">${chartTexts[lang].strategicNecessityText}</span>`;
+                    }
+                     row.style.backgroundColor = seventMediumGray; 
+                } else {
+                    recommendationCell.textContent = '-';
+                }
+                row.title = lever['note_' + lang]; 
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const languageToggle = document.getElementById('languageToggle');
+            languageToggle.addEventListener('click', () => {
+                currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
+                translatePage(currentLanguage);
+            });
+
+            document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        const navHeight = document.getElementById('mainNav').offsetHeight;
+                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navHeight - 20; 
+
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                        
+                        document.querySelectorAll('nav .nav-link, nav .nav-link-sub').forEach(link => link.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        const parentDropdownLink = this.closest('.group')?.querySelector('a.nav-link');
+                        if (parentDropdownLink && this !== parentDropdownLink) {
+                             parentDropdownLink.classList.add('active');
+                        }
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.accordion-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    button.classList.toggle('expanded');
+                    content.style.display = content.style.display === 'none' || content.style.display === '' ? 'block' : 'none';
+                });
+            });
+
+            const seventGreen = '#7ED321';
+            const seventWhite = '#FFFFFF';
+            const seventLightGray = '#CCCCCC';
+            const seventDarkGray = '#1a1a1a';
+            const seventMediumGray = '#2d2d2d';
+            const seventBlack = '#000000'; 
+
+            Chart.defaults.font.family = 'Inter, sans-serif';
+            Chart.defaults.color = seventLightGray; 
+            Chart.defaults.borderColor = seventMediumGray; 
+
+            Chart.defaults.plugins.tooltip.enabled = true;
+            Chart.defaults.plugins.tooltip.mode = 'index';
+            Chart.defaults.plugins.tooltip.intersect = false;
+            Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0,0,0,0.85)';
+            Chart.defaults.plugins.tooltip.titleFont = { size: 14, weight: 'bold', family: 'Inter' };
+            Chart.defaults.plugins.tooltip.titleColor = seventGreen;
+            Chart.defaults.plugins.tooltip.bodyFont = { size: 12, family: 'Inter' };
+            Chart.defaults.plugins.tooltip.bodyColor = seventWhite;
+            Chart.defaults.plugins.tooltip.padding = 10;
+            Chart.defaults.plugins.tooltip.displayColors = true;
+            Chart.defaults.plugins.tooltip.boxPadding = 4;
+            Chart.defaults.plugins.tooltip.borderColor = seventGreen;
+            Chart.defaults.plugins.tooltip.borderWidth = 1;
+            Chart.defaults.plugins.legend.labels.color = seventLightGray;
+
+
+            const wrapLabels = (labels, maxChars = 16) => {
+                return labels.map(label => {
+                    if (typeof label !== 'string') return label; 
+                    if (label.length > maxChars) {
+                        const parts = [];
+                        let currentPart = '';
+                        label.split(' ').forEach(word => {
+                            if ((currentPart + word).length > maxChars && currentPart.length > 0) {
+                                parts.push(currentPart.trim());
+                                currentPart = word + ' ';
+                            } else {
+                                currentPart += word + ' ';
+                            }
+                        });
+                        parts.push(currentPart.trim());
+                        return parts;
+                    }
+                    return label;
+                });
+            };
+
+            const marketVehiclesCtx = document.getElementById('marketVehiclesChart')?.getContext('2d');
+            if (marketVehiclesCtx) {
+                marketVehiclesChartInstance = new Chart(marketVehiclesCtx, { 
+                    type: 'bar',
+                    data: {
+                        labels: ['Free-Floating', 'Stationsbasiert/Kombiniert'], 
+                        datasets: [{
+                            label: chartTexts[currentLanguage].marketVehiclesTitle, // Initial label based on currentLanguage
+                            data: [27400, 18000],
+                            backgroundColor: [seventGreen, '#55a00f'], 
+                            borderColor: [seventGreen, '#55a00f'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                title: { display: true, text: chartTexts[currentLanguage].marketVehiclesTitle, color: seventLightGray, font: {weight: 'bold'}},
+                                grid: { color: seventMediumGray },
+                                ticks: { color: seventLightGray }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: seventLightGray, font: {weight: 'bold'} }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            const marketCommunesCtx = document.getElementById('marketCommunesChart')?.getContext('2d');
+            if (marketCommunesCtx) {
+                marketCommunesChartInstance = new Chart(marketCommunesCtx, { 
+                    type: 'bar',
+                    data: {
+                        labels: ['Free-Floating', 'Stationsbasiert/Kombiniert'], 
+                        datasets: [{
+                            label: chartTexts[currentLanguage].marketCommunesTitle, // Initial label
+                            data: [44, 1385],
+                            backgroundColor: [seventGreen, '#55a00f'],
+                            borderColor: [seventGreen, '#55a00f'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                title: { display: true, text: chartTexts[currentLanguage].marketCommunesTitle, color: seventLightGray, font: {weight: 'bold'}},
+                                grid: { color: seventMediumGray },
+                                ticks: { color: seventLightGray }
+                            },
+                             x: {
+                                grid: { display: false },
+                                ticks: { color: seventLightGray, font: {weight: 'bold'} }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+            
+            const evShareCtx = document.getElementById('evShareTrendChart')?.getContext('2d');
+            if (evShareCtx) {
+                evShareTrendChartInstance = new Chart(evShareCtx, { 
+                    type: 'line',
+                    data: {
+                        labels: ['Jan 2022', 'Jan 2023', 'Jan 2024'], 
+                        datasets: [{
+                            label: chartTexts[currentLanguage].evShareLabel,
+                            data: [23.3, 20.5, 17.8],
+                            borderColor: seventGreen,
+                            backgroundColor: 'rgba(126, 211, 33, 0.3)', 
+                            fill: true,
+                            tension: 0.1,
+                            pointBackgroundColor: seventWhite,
+                            pointBorderColor: seventGreen,
+                            pointHoverBackgroundColor: seventGreen,
+                            pointHoverBorderColor: seventWhite,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: false, 
+                                title: { display: true, text: chartTexts[currentLanguage].evShareTitle, color: seventLightGray, font: {weight: 'bold'}},
+                                grid: { color: seventMediumGray },
+                                ticks: { color: seventLightGray }
+                            },
+                            x: {
+                                grid: { color: seventMediumGray },
+                                ticks: { color: seventLightGray, font: {weight: 'bold'} }
+                            }
+                        },
+                        plugins: { legend: { display: true, position: 'top', labels: { color: seventLightGray, font: {weight: 'bold'} } } }
+                    }
+                });
+            }
+
+            const competitorFleetCtx = document.getElementById('competitorFleetSizeChart')?.getContext('2d');
+            if (competitorFleetCtx) {
+                const competitorLabels = ['Miles Mobility', 'Sixt share (Teilflotte)', 'Free2move (EU, Teil DE)', 'Cambio', 'Flinkster (DB)'];
+                competitorFleetSizeChartInstance = new Chart(competitorFleetCtx, { 
+                    type: 'bar', 
+                    data: {
+                        labels: wrapLabels(competitorLabels), 
+                        datasets: [{
+                            label: chartTexts[currentLanguage].competitorFleetLabel, 
+                            data: [21000, 14000, 3000, 2700, 2300], 
+                            backgroundColor: [seventGreen, '#68b81a', '#55a00f', '#428800', '#2f6f00'], 
+                            borderColor: [seventGreen, '#68b81a', '#55a00f', '#428800', '#2f6f00'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', 
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { 
+                                beginAtZero: true, 
+                                title: { display: true, text: chartTexts[currentLanguage].competitorFleetTitle, color: seventLightGray, font: {weight: 'bold'}},
+                                grid: { color: seventMediumGray },
+                                ticks: { color: seventLightGray }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: seventLightGray, font: {size: 10, weight: 'bold'} } 
+                            }
+                        },
+                        plugins: { legend: { display: true, position: 'bottom', labels: {color: seventLightGray} } } 
+                    }
+                });
+            }
+            
+            translatePage(currentLanguage);
+        });
+
+        let sortDirections = {};
+        function sortTable(columnIndex) {
+            const table = document.getElementById('leversTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            const currentDirection = sortDirections[columnIndex] || 'asc';
+            const direction = currentDirection === 'asc' ? 'desc' : 'asc';
+            sortDirections = {}; 
+            sortDirections[columnIndex] = direction;
+
+            rows.sort((a, b) => {
+                const aText = a.cells[columnIndex].textContent.trim();
+                const bText = b.cells[columnIndex].textContent.trim();
+                
+                const aVal = isNaN(parseFloat(aText)) ? aText.toLowerCase() : parseFloat(aText);
+                const bVal = isNaN(parseFloat(bText)) ? bText.toLowerCase() : parseFloat(bText);
+
+                if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+            }
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+</html>
