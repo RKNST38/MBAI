@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-lang-de="SEVENT: Agenda Vorstandsmeeting" data-lang-en="SEVENT: Board Meeting Agenda">SEVENT: Agenda Vorstandsmeeting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sevent-green: #7ED321;
+            --sevent-dark-gray: #1a1a1a;
+            --sevent-medium-gray: #2d2d2d;
+            --sevent-light-gray: #cccccc;
+            --sevent-white: #ffffff;
+            --sevent-black: #000000;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--sevent-black);
+            color: var(--sevent-light-gray);
+            scroll-behavior: smooth;
+        }
+
+        .nav-link {
+            padding: 0.75rem 1.25rem; 
+            border-radius: 0.375rem;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--sevent-light-gray);
+            display: inline-block; 
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--sevent-green);
+            color: var(--sevent-black);
+            box-shadow: 0 0 15px var(--sevent-green);
+        }
+        
+        h1.main-title { 
+            font-size: 3rem; 
+            font-weight: 900; 
+            color: var(--sevent-green);
+            text-shadow: 0 0 10px var(--sevent-green), 0 0 20px var(--sevent-green);
+        }
+        h2.page-subtitle {
+            font-size: 1.5rem; /* text-2xl */
+            color: var(--sevent-white);
+            margin-bottom: 2rem; 
+            text-transform: uppercase;
+            text-align: center;
+        }
+        h3.agenda-section-title {
+            font-size: 1.75rem; /* text-3xl */
+            color: var(--sevent-green);
+            margin-top: 2.5rem; 
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--sevent-green);
+            padding-bottom: 0.5rem;
+        }
+         h4.agenda-item-title {
+            font-size: 1.25rem; /* text-xl */
+            color: var(--sevent-white);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .tagline {
+            color: var(--sevent-green);
+            text-transform: uppercase;
+            font-weight: 600;
+            font-size: 1.25rem; 
+            letter-spacing: 0.1em; 
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--sevent-dark-gray);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--sevent-green);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5cb800; 
+        }
+
+        #languageToggle {
+            background-color: var(--sevent-medium-gray);
+            color: var(--sevent-green);
+            border: 1px solid var(--sevent-green);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+        #languageToggle:hover {
+            background-color: var(--sevent-green);
+            color: var(--sevent-black);
+            box-shadow: 0 0 10px var(--sevent-green);
+        }
+
+        .agenda-item {
+            background-color: var(--sevent-dark-gray);
+            border-left: 4px solid var(--sevent-green);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .agenda-item.high-priority { /* Style for high priority items */
+            border-left-color: #ff3333; /* Brighter red for high priority */
+        }
+        .agenda-item .time {
+            font-weight: 700;
+            color: var(--sevent-green);
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        .agenda-item.high-priority .time {
+             color: #ff8080; /* Lighter red for time of high priority */
+        }
+        .agenda-item .duration {
+            font-size: 0.8rem;
+            color: var(--sevent-light-gray);
+            margin-left: 0.5rem;
+        }
+        .agenda-item .details {
+            font-size: 0.9rem;
+            color: var(--sevent-light-gray);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="py-8 bg-sevent-black text-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="main-title">SEVENT®</h1>
+            <p class="tagline mt-2">THE FUTURE OF DRIVING</p>
+        </div>
+         <div class="mt-4 text-right px-4 sm:px-6 lg:px-8 absolute top-4 right-4">
+            <button id="languageToggle">EN</button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 class="page-subtitle" data-lang-de="Agenda: Vorstandsmeeting zur Strategie" data-lang-en="Agenda: Board Meeting on Strategy">Agenda: Vorstandsmeeting zur Strategie</h2>
+        
+        <p class="text-center mb-2" data-lang-de="Datum: [Datum einfügen], [Uhrzeit einfügen] (Dauer: 2 Stunden)" data-lang-en="Date: [Insert Date], [Insert Time] (Duration: 2 Hours)">Datum: [Datum einfügen], [Uhrzeit einfügen] (Dauer: 2 Stunden)</p>
+        <p class="text-center mb-8" data-lang-de="Ort: [Ort einfügen] / Virtuell" data-lang-en="Location: [Insert Location] / Virtual">Ort: [Ort einfügen] / Virtuell</p>
+
+        <div>
+            <div class="agenda-item">
+                <span class="time" data-lang-de="00:00 - 00:05" data-lang-en="00:00 - 00:05">00:00 - 00:05</span>
+                <h4 class="agenda-item-title inline" data-lang-de="Begrüßung und Einführung" data-lang-en="Welcome and Introduction">Begrüßung und Einführung</h4>
+                <span class="duration" data-lang-de="(5 Min.)" data-lang-en="(5 Min.)">(5 Min.)</span>
+                <p class="details" data-lang-de="Ziele des Meetings, kurze Vorstellung der Agenda." data-lang-en="Meeting objectives, brief overview of the agenda.">Ziele des Meetings, kurze Vorstellung der Agenda.</p>
+            </div>
+
+            <div class="agenda-item high-priority">
+                <span class="time" data-lang-de="00:05 - 00:25" data-lang-en="00:05 - 00:25">00:05 - 00:25</span>
+                <h4 class="agenda-item-title inline" data-lang-de="Update & Diskussion: Verhandlungen Fahrzeuglieferanten & Status 200k EV-Deal" data-lang-en="Update & Discussion: Vehicle Supplier Negotiations & Status 200k EV Deal">Update & Diskussion: Verhandlungen Fahrzeuglieferanten & Status 200k EV-Deal</h4>
+                <span class="duration" data-lang-de="(20 Min.)" data-lang-en="(20 Min.)">(20 Min.)</span>
+                <ul class="details list-disc list-inside pl-4 mt-2">
+                    <li data-lang-de="Aktueller Stand der Verhandlungen" data-lang-en="Current status of negotiations">Aktueller Stand der Verhandlungen</li>
+                    <li data-lang-de="Herausforderungen und Risiken (Taskforce Tonga)" data-lang-en="Challenges and risks (Taskforce Tonga)">Herausforderungen und Risiken (Taskforce Tonga)</li>
+                    <li data-lang-de="Nächste Schritte zur Sicherung des Deals" data-lang-en="Next steps to secure the deal">Nächste Schritte zur Sicherung des Deals</li>
+                    <li data-lang-de="Kontingenzplanung" data-lang-en="Contingency planning">Kontingenzplanung</li>
+                </ul>
+            </div>
+
+            <div class="agenda-item">
+                <span class="time" data-lang-de="00:25 - 00:55" data-lang-en="00:25 - 00:55">00:25 - 00:55</span>
+                <h4 class="agenda-item-title inline" data-lang-de="Diskussion: Proprietäres EV-Ladenetz" data-lang-en="Discussion: Proprietary EV Charging Network">Diskussion: Proprietäres EV-Ladenetz</h4>
+                <span class="duration" data-lang-de="(30 Min.)" data-lang-en="(30 Min.)">(30 Min.)</span>
+                <ul class="details list-disc list-inside pl-4 mt-2">
+                    <li data-lang-de="Analyse der Notwendigkeit und Vorteile" data-lang-en="Analysis of necessity and benefits">Analyse der Notwendigkeit und Vorteile</li>
+                    <li data-lang-de="Potenzielle Modelle (Eigenaufbau, Partnerschaften)" data-lang-en="Potential models (own development, partnerships)">Potenzielle Modelle (Eigenaufbau, Partnerschaften)</li>
+                    <li data-lang-de="Ressourcenbedarf und Zeitplan" data-lang-en="Resource requirements and timeline">Ressourcenbedarf und Zeitplan</li>
+                    <li data-lang-de="Risikobewertung und Mitigation" data-lang-en="Risk assessment and mitigation">Risikobewertung und Mitigation</li>
+                </ul>
+            </div>
+
+            <div class="agenda-item">
+                <span class="time" data-lang-de="00:55 - 01:25" data-lang-en="00:55 - 01:25">00:55 - 01:25</span>
+                <h4 class="agenda-item-title inline" data-lang-de="Diskussion: Fortschrittliche Datenanalyse & Dynamische Preisgestaltung" data-lang-en="Discussion: Advanced Data Analysis & Dynamic Pricing">Diskussion: Fortschrittliche Datenanalyse & Dynamische Preisgestaltung</h4>
+                <span class="duration" data-lang-de="(30 Min.)" data-lang-en="(30 Min.)">(30 Min.)</span>
+                 <ul class="details list-disc list-inside pl-4 mt-2">
+                    <li data-lang-de="Potenzial für Flottenoptimierung und Umsatzsteigerung" data-lang-en="Potential for fleet optimization and revenue increase">Potenzial für Flottenoptimierung und Umsatzsteigerung</li>
+                    <li data-lang-de="Technologieanforderungen (KI/ML)" data-lang-en="Technology requirements (AI/ML)">Technologieanforderungen (KI/ML)</li>
+                    <li data-lang-de="Datenschutzaspekte" data-lang-en="Data privacy considerations">Datenschutzaspekte</li>
+                    <li data-lang-de="Implementierungsstrategie" data-lang-en="Implementation strategy">Implementierungsstrategie</li>
+                </ul>
+            </div>
+            
+            <div class="agenda-item">
+                <span class="time" data-lang-de="01:25 - 01:30" data-lang-en="01:25 - 01:30">01:25 - 01:30</span>
+                <h4 class="agenda-item-title inline" data-lang-de="Kurze Pause (Optional)" data-lang-en="Short Break (Optional)">Kurze Pause (Optional)</h4>
+                <span class="duration" data-lang-de="(5 Min.)" data-lang-en="(5 Min.)">(5 Min.)</span>
+            </div>
+
+            <div class="agenda-item">
+                <span class="time" data-lang-de="01:30 - 01:50" data-lang-en="01:30 - 01:50">01:30 - 01:50</span>
+                <h4 class="agenda-item-title inline" data-lang-de="Diskussion: &quot;Total Zero&quot; Nachhaltigkeitsmarke" data-lang-en="Discussion: &quot;Total Zero&quot; Sustainability Brand">Diskussion: "Total Zero" Nachhaltigkeitsmarke</h4>
+                <span class="duration" data-lang-de="(20 Min.)" data-lang-en="(20 Min.)">(20 Min.)</span>
+                <ul class="details list-disc list-inside pl-4 mt-2">
+                    <li data-lang-de="Markenpositionierung und Differenzierung" data-lang-en="Brand positioning and differentiation">Markenpositionierung und Differenzierung</li>
+                    <li data-lang-de="Glaubwürdigkeit und Kommunikation" data-lang-en="Credibility and communication">Glaubwürdigkeit und Kommunikation</li>
+                    <li data-lang-de="Integration in alle Unternehmensbereiche" data-lang-en="Integration into all business areas">Integration in alle Unternehmensbereiche</li>
+                    <li data-lang-de="Messung des Erfolgs" data-lang-en="Measuring success">Messung des Erfolgs</li>
+                </ul>
+            </div>
+
+            <div class="agenda-item">
+                <span class="time" data-lang-de="01:50 - 02:00" data-lang-en="01:50 - 02:00">01:50 - 02:00</span>
+                <h4 class="agenda-item-title inline" data-lang-de="Nächste Schritte und Abschluss" data-lang-en="Next Steps and Closing">Nächste Schritte und Abschluss</h4>
+                <span class="duration" data-lang-de="(10 Min.)" data-lang-en="(10 Min.)">(10 Min.)</span>
+                <ul class="details list-disc list-inside pl-4 mt-2">
+                    <li data-lang-de="Zusammenfassung der wichtigsten Entscheidungen" data-lang-en="Summary of key decisions">Zusammenfassung der wichtigsten Entscheidungen</li>
+                    <li data-lang-de="Festlegung von Verantwortlichkeiten und Zeitplänen" data-lang-en="Assignment of responsibilities and timelines">Festlegung von Verantwortlichkeiten und Zeitplänen</li>
+                    <li data-lang-de="Verabschiedung" data-lang-en="Closing remarks">Verabschiedung</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-10 bg-sevent-dark-gray text-sevent-light-gray text-center border-t-2 border-sevent-green mt-12">
+        <p class="text-lg">&copy; 2025 SEVENT® - THE FUTURE OF DRIVING</p>
+    </footer>
+
+    <script>
+        let currentLanguage = 'de'; // Default language
+
+        function translatePage(lang) {
+            document.documentElement.lang = lang;
+            document.title = document.querySelector('title').dataset['lang' + lang] || document.querySelector('title').dataset['langDe'];
+
+            document.querySelectorAll('[data-lang-de]').forEach(el => {
+                let translatedText;
+                if (lang === 'en') {
+                    translatedText = el.dataset.langEn;
+                } else {
+                    translatedText = el.dataset.langDe;
+                }
+
+                if (typeof translatedText === 'undefined') { // Fallback if a specific translation is missing
+                    translatedText = el.dataset.langDe;
+                }
+                
+                if (typeof translatedText !== 'undefined') {
+                    if (el.classList.contains('agenda-item-title') && el.classList.contains('inline')) {
+                        for (let i = 0; i < el.childNodes.length; i++) {
+                            if (el.childNodes[i].nodeType === Node.TEXT_NODE && el.childNodes[i].textContent.trim() !== '') {
+                                el.childNodes[i].nodeValue = translatedText.trim() + ' '; 
+                                break;
+                            }
+                        }
+                    } else {
+                        el.textContent = translatedText;
+                    }
+                }
+            });
+            
+            const toggleButton = document.getElementById('languageToggle');
+            toggleButton.textContent = lang === 'de' ? 'EN' : 'DE';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const languageToggle = document.getElementById('languageToggle');
+            languageToggle.addEventListener('click', () => {
+                currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
+                translatePage(currentLanguage);
+            });
+
+            translatePage(currentLanguage); 
+        });
+    </script>
+</body>
+</html>
